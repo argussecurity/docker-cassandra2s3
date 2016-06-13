@@ -9,6 +9,7 @@ fi
 
 # Constants
 BASE_PATH=/tmp/cassandra/dump
+CQL_VERSION=${CQL_VERSION:-3.1.7}
 IP=${IP:-$(hostname --ip)}
 
 
@@ -16,7 +17,7 @@ IP=${IP:-$(hostname --ip)}
 #   cqlsh command to execute
 # Output: CQLSH_RET
 function cqlsh_exec {
-  CQLSH_RET=$(cqlsh -u ${DB_USER} -p ${DB_PASS} -e "$1" ${IP})
+  CQLSH_RET=$(cqlsh --cqlversion ${CQL_VERSION} -u ${DB_USER} -p ${DB_PASS} -e "$1" ${IP})
 }
 
 # Input:
@@ -37,11 +38,11 @@ function export_db {
   keyspace=$1
   table=$2
   keyspace_tables=()
-  if [[ -z ${table} ]]; then    # export only one table
-    keyspace_tables+=(${table})
-  else                          # export all keyspace's tables
+  if [[ -z ${table} ]]; then    # export all keyspace's tables
     cqlsh_exec "USE $keyspace; DESCRIBE TABLES" && cqlsh_ret=${CQLSH_RET}
     for row in ${cqlsh_ret}; do if [[ ${row} =~ ([a-z_]+) ]]; then keyspace_tables+=(${BASH_REMATCH[1]}); fi; done
+  else                          # export only one table
+    keyspace_tables+=(${table})
   fi
   for table in ${keyspace_tables[@]}; do
     export_table ${keyspace} ${table}
@@ -80,7 +81,8 @@ for export_tuple in "$@"; do
 done
 
 echo "GZipping..."
-tar -cvzf /tmp/dump.tar.gz ${BASE_PATH}
+tar -cvzf /tmp/dump.tar.gz -C ${BASE_PATH} .
 
-echo "Uploading to S3..."
-put_s3 /tmp/dump.tar.gz ${OUTPUT_NAME}.tar.gz
+output_path=${OUTPUT_NAME}_$(date "+%F-%T").tar.gz
+echo "Uploading to S3 [$output_path]..."
+put_s3 /tmp/dump.tar.gz ${output_path}
