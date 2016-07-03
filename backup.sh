@@ -33,7 +33,7 @@ function export_table {
   keyspace=$1
   table=$2
   echo "Exporting table '$table'..."
-  cqlsh_exec "USE $keyspace; COPY $table TO '$BASE_PATH/$keyspace-$table.csv'"
+  cqlsh_exec "USE $keyspace; COPY $table TO '$BASE_PATH/$keyspace-$table.csv' WITH PAGETIMEOUT=$CLIENT_TIMEOUT"
   echo "Done exporting table '$table'."
 }
 
