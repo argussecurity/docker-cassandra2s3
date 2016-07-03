@@ -15,6 +15,7 @@ docker run --rm -it --net host \
   -e OUTPUT_NAME=dump \
   [-e CQL_VERSION=3.1.7 \]
   [-e IP=127.0.0.1 \]
+  [-e CLIENT_TIMEOUT=10 \]
   argussecurity/cassandra2s3 keyspace1 keyspace2:table1 keyspace2:table2 [...]
 ```
 

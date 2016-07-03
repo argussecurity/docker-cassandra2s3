@@ -11,7 +11,13 @@ fi
 BASE_PATH=/tmp/cassandra/dump
 CQL_VERSION=${CQL_VERSION:-3.1.7}
 IP=${IP:-$(hostname --ip)}
+CLIENT_TIMEOUT=${CLIENT_TIMEOUT:-10}
 
+
+function init_cqlsh {
+  mkdir ~/.cassandra
+  printf "[connection]\nclient_timeout = $CLIENT_TIMEOUT" > ~/.cassandra/cqlshrc
+}
 
 # Input:
 #   cqlsh command to execute
@@ -71,6 +77,8 @@ function put_s3 {
 
 
 # Execution
+
+init_cqlsh
 
 mkdir -p ${BASE_PATH}
 
